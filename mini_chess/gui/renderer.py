@@ -4,19 +4,31 @@ import os
 BOARD_SIZE = 8
 CELL_SIZE = 60
 BOARD_PIXELS = BOARD_SIZE * CELL_SIZE
+PANEL_HEIGHT = 140
 
+BG_COLOR = (18, 22, 28)
+PANEL_COLOR = (32, 36, 44)
 LIGHT_COLOR = (240, 217, 181)
 DARK_COLOR = (181, 136, 99)
-SELECT_COLOR = (100, 200, 100)
-MOVE_HINT_COLOR = (80, 170, 255)
-CHECK_COLOR = (220, 60, 60)
+
+SELECT_COLOR = (76, 175, 80)
+MOVE_HINT_COLOR = (66, 165, 245)
+CHECK_COLOR = (220, 76, 70)
+
+BUTTON_COLOR = (70, 75, 90)
+BUTTON_HOVER = (100, 110, 130)
+BUTTON_BORDER = (220, 220, 220)
+
+TEXT_MAIN = (245, 245, 245)
+TEXT_SUB = (180, 180, 180)
+TEXT_ACCENT = (255, 204, 102)
 
 
 class Renderer:
     def __init__(self):
         pygame.font.init()
         self.font = pygame.font.SysFont("arial", 28, bold=True)
-        self.small_font = pygame.font.SysFont("arial", 18, bold=True)
+        self.small_font = pygame.font.SysFont("arial", 19, bold=True)
         self.overlay_font = pygame.font.SysFont("arial", 34, bold=True)
         self.overlay_sub_font = pygame.font.SysFont("arial", 20, bold=True)
         self.button_font = pygame.font.SysFont("arial", 18, bold=True)
@@ -33,6 +45,9 @@ class Renderer:
             "p": pygame.image.load(os.path.join(assets_path, "bP.png")).convert_alpha(),
         }
 
+    def draw_background(self, screen):
+        screen.fill(BG_COLOR)
+
     def draw_board(self, screen):
         for row in range(BOARD_SIZE):
             for col in range(BOARD_SIZE):
@@ -43,10 +58,9 @@ class Renderer:
     def draw_selected(self, screen, selected_pos):
         if selected_pos is None:
             return
-
         row, col = selected_pos
         rect = pygame.Rect(col * CELL_SIZE, row * CELL_SIZE, CELL_SIZE, CELL_SIZE)
-        pygame.draw.rect(screen, SELECT_COLOR, rect, 4)
+        pygame.draw.rect(screen, SELECT_COLOR, rect, 4, border_radius=8)
 
     def draw_move_hints(self, screen, highlight_moves):
         for move in highlight_moves:
@@ -58,10 +72,9 @@ class Renderer:
     def draw_check_highlight(self, screen, check_king_pos):
         if check_king_pos is None:
             return
-
         row, col = check_king_pos
         rect = pygame.Rect(col * CELL_SIZE, row * CELL_SIZE, CELL_SIZE, CELL_SIZE)
-        pygame.draw.rect(screen, CHECK_COLOR, rect, 4)
+        pygame.draw.rect(screen, CHECK_COLOR, rect, 4, border_radius=8)
 
     def draw_pieces(self, screen, board):
         piece_size = int(CELL_SIZE * 0.82)
@@ -85,26 +98,22 @@ class Renderer:
         return f"{minutes:02d}:{seconds:02d}"
 
     def draw_button(self, screen, rect, text, mouse_pos):
-        base_color = (60, 60, 70)
-        hover_color = (95, 95, 110)
-        border_color = (220, 220, 220)
+        color = BUTTON_HOVER if rect.collidepoint(mouse_pos) else BUTTON_COLOR
+        pygame.draw.rect(screen, color, rect, border_radius=12)
+        pygame.draw.rect(screen, BUTTON_BORDER, rect, width=2, border_radius=12)
 
-        color = hover_color if rect.collidepoint(mouse_pos) else base_color
-        pygame.draw.rect(screen, color, rect, border_radius=10)
-        pygame.draw.rect(screen, border_color, rect, width=2, border_radius=10)
-
-        text_surface = self.button_font.render(text, True, (255, 255, 255))
+        text_surface = self.button_font.render(text, True, TEXT_MAIN)
         text_rect = text_surface.get_rect(center=rect.center)
         screen.blit(text_surface, text_rect)
 
     def draw_bottom_buttons(self, screen, mouse_pos):
-        button_width = 90
-        button_height = 30
-        gap = 10
+        button_width = 100
+        button_height = 34
+        gap = 14
 
         total_width = button_width * 3 + gap * 2
         start_x = (BOARD_PIXELS - total_width) // 2
-        y = BOARD_PIXELS + 82
+        y = BOARD_PIXELS + 96
 
         restart_btn = pygame.Rect(start_x, y, button_width, button_height)
         menu_btn = pygame.Rect(start_x + button_width + gap, y, button_width, button_height)
@@ -133,8 +142,8 @@ class Renderer:
         in_check=False,
     ):
         panel_y = BOARD_PIXELS
-        panel_rect = pygame.Rect(0, panel_y, BOARD_PIXELS, 120)
-        pygame.draw.rect(screen, (50, 50, 50), panel_rect)
+        panel_rect = pygame.Rect(0, panel_y, BOARD_PIXELS, PANEL_HEIGHT)
+        pygame.draw.rect(screen, PANEL_COLOR, panel_rect)
 
         if game_over:
             if result == "checkmate":
@@ -152,15 +161,15 @@ class Renderer:
         line3 = f"Mode: {mode_name}"
         line4 = "CHECK!" if (not game_over and in_check) else "Click buttons below"
 
-        text1 = self.small_font.render(line1, True, (255, 255, 255))
-        text2 = self.small_font.render(line2, True, (255, 255, 255))
-        text3 = self.small_font.render(line3, True, (255, 255, 255))
-        text4 = self.small_font.render(line4, True, (255, 100, 100) if line4 == "CHECK!" else (220, 220, 220))
+        text1 = self.small_font.render(line1, True, TEXT_MAIN)
+        text2 = self.small_font.render(line2, True, TEXT_MAIN)
+        text3 = self.small_font.render(line3, True, TEXT_MAIN)
+        text4 = self.small_font.render(line4, True, CHECK_COLOR if line4 == "CHECK!" else TEXT_SUB)
 
-        screen.blit(text1, (10, BOARD_PIXELS + 8))
-        screen.blit(text2, (10, BOARD_PIXELS + 30))
-        screen.blit(text3, (10, BOARD_PIXELS + 52))
-        screen.blit(text4, (10, BOARD_PIXELS + 74))
+        screen.blit(text1, (12, BOARD_PIXELS + 10))
+        screen.blit(text2, (12, BOARD_PIXELS + 34))
+        screen.blit(text3, (12, BOARD_PIXELS + 58))
+        screen.blit(text4, (12, BOARD_PIXELS + 82))
 
         return self.draw_bottom_buttons(screen, mouse_pos)
 
@@ -177,7 +186,7 @@ class Renderer:
 
     def draw_game_over_overlay(self, screen, result, winner):
         overlay = pygame.Surface((BOARD_PIXELS, BOARD_PIXELS), pygame.SRCALPHA)
-        overlay.fill((0, 0, 0, 140))
+        overlay.fill((0, 0, 0, 145))
         screen.blit(overlay, (0, 0))
 
         box_width = 320
@@ -186,20 +195,20 @@ class Renderer:
         box_y = (BOARD_PIXELS - box_height) // 2
 
         box_rect = pygame.Rect(box_x, box_y, box_width, box_height)
-        pygame.draw.rect(screen, (35, 35, 40), box_rect, border_radius=16)
+        pygame.draw.rect(screen, (36, 40, 52), box_rect, border_radius=16)
         pygame.draw.rect(screen, (230, 230, 230), box_rect, width=2, border_radius=16)
 
         title, subtitle = self.get_game_over_message(result, winner)
 
-        title_surface = self.overlay_font.render(title, True, (255, 255, 255))
+        title_surface = self.overlay_font.render(title, True, TEXT_MAIN)
         title_rect = title_surface.get_rect(center=(BOARD_PIXELS // 2, box_y + 42))
         screen.blit(title_surface, title_rect)
 
-        subtitle_surface = self.overlay_sub_font.render(subtitle, True, (220, 220, 220))
+        subtitle_surface = self.overlay_sub_font.render(subtitle, True, TEXT_SUB)
         subtitle_rect = subtitle_surface.get_rect(center=(BOARD_PIXELS // 2, box_y + 80))
         screen.blit(subtitle_surface, subtitle_rect)
 
-        hint_surface = self.small_font.render("Use buttons below", True, (255, 220, 120))
+        hint_surface = self.small_font.render("Use the buttons below", True, TEXT_ACCENT)
         hint_rect = hint_surface.get_rect(center=(BOARD_PIXELS // 2, box_y + 112))
         screen.blit(hint_surface, hint_rect)
 
@@ -218,6 +227,7 @@ class Renderer:
         if highlight_moves is None:
             highlight_moves = []
 
+        self.draw_background(screen)
         self.draw_board(screen)
         self.draw_selected(screen, selected_pos)
         self.draw_move_hints(screen, highlight_moves)
@@ -227,7 +237,7 @@ class Renderer:
         if state.game_over:
             self.draw_game_over_overlay(screen, state.result, state.winner)
 
-        bottom_buttons = self.draw_status(
+        return self.draw_status(
             screen,
             current_player=state.current_player,
             elapsed_seconds=elapsed_seconds,
@@ -238,5 +248,3 @@ class Renderer:
             winner=state.winner,
             in_check=in_check,
         )
-
-        return bottom_buttons

@@ -28,7 +28,7 @@ except Exception:
 BOARD_SIZE = 8
 CELL_SIZE = 60
 WINDOW_WIDTH = BOARD_SIZE * CELL_SIZE
-WINDOW_HEIGHT = BOARD_SIZE * CELL_SIZE + 120
+WINDOW_HEIGHT = BOARD_SIZE * CELL_SIZE + 140
 
 
 def mode_to_name(mode):
@@ -76,28 +76,50 @@ def draw_menu_button(screen, rect, text, font, mouse_pos):
     screen.blit(text_surface, text_rect)
 
 
-def draw_menu(screen, title_font, button_font, mouse_pos):
-    screen.fill((24, 26, 32))
 
-    title = title_font.render("Mini Chess", True, (255, 255, 255))
+def draw_menu(screen, title_font, button_font, mouse_pos):
+    screen.fill((18, 22, 28))
+
+    # title
+    title = title_font.render("Mini Chess", True, (255, 204, 102))
     subtitle = button_font.render("Choose a game mode", True, (180, 180, 180))
 
     screen.blit(title, title.get_rect(center=(WINDOW_WIDTH // 2, 90)))
     screen.blit(subtitle, subtitle.get_rect(center=(WINDOW_WIDTH // 2, 140)))
 
+    # button layout
+    button_width = 280
+    button_height = 55
+    gap = 18
+
+    center_x = WINDOW_WIDTH // 2
+    start_y = 200
+
     buttons = {
-        MODE_HUMAN_VS_HUMAN: pygame.Rect(170, 210, 300, 60),
-        MODE_HUMAN_VS_ALPHABETA: pygame.Rect(170, 290, 300, 60),
-        MODE_HUMAN_VS_MCTS: pygame.Rect(170, 370, 300, 60),
-        MODE_AI_VS_AI: pygame.Rect(170, 450, 300, 60),
-        "quit": pygame.Rect(170, 530, 300, 60),
+        MODE_HUMAN_VS_HUMAN: pygame.Rect(center_x - button_width // 2, start_y, button_width, button_height),
+        MODE_HUMAN_VS_ALPHABETA: pygame.Rect(center_x - button_width // 2, start_y + (button_height + gap), button_width, button_height),
+        MODE_HUMAN_VS_MCTS: pygame.Rect(center_x - button_width // 2, start_y + (button_height + gap) * 2, button_width, button_height),
+        MODE_AI_VS_AI: pygame.Rect(center_x - button_width // 2, start_y + (button_height + gap) * 3, button_width, button_height),
+        "quit": pygame.Rect(center_x - button_width // 2, start_y + (button_height + gap) * 4, button_width, button_height),
     }
 
-    draw_menu_button(screen, buttons[MODE_HUMAN_VS_HUMAN], "Human vs Human", button_font, mouse_pos)
-    draw_menu_button(screen, buttons[MODE_HUMAN_VS_ALPHABETA], "Human vs AlphaBeta", button_font, mouse_pos)
-    draw_menu_button(screen, buttons[MODE_HUMAN_VS_MCTS], "Human vs MCTS", button_font, mouse_pos)
-    draw_menu_button(screen, buttons[MODE_AI_VS_AI], "AI vs AI", button_font, mouse_pos)
-    draw_menu_button(screen, buttons["quit"], "Quit", button_font, mouse_pos)
+    def draw_btn(rect, text):
+        base = (70, 75, 90)
+        hover = (100, 110, 130)
+
+        color = hover if rect.collidepoint(mouse_pos) else base
+
+        pygame.draw.rect(screen, color, rect, border_radius=14)
+        pygame.draw.rect(screen, (255, 255, 255), rect, width=2, border_radius=14)
+
+        txt = button_font.render(text, True, (255, 255, 255))
+        screen.blit(txt, txt.get_rect(center=rect.center))
+
+    draw_btn(buttons[MODE_HUMAN_VS_HUMAN], "Human vs Human")
+    draw_btn(buttons[MODE_HUMAN_VS_ALPHABETA], "Human vs AlphaBeta")
+    draw_btn(buttons[MODE_HUMAN_VS_MCTS], "Human vs MCTS")
+    draw_btn(buttons[MODE_AI_VS_AI], "AI vs AI")
+    draw_btn(buttons["quit"], "Quit")
 
     return buttons
 

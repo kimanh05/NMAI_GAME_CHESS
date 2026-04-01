@@ -43,6 +43,12 @@ def apply_move(state, move):
     new_board[move.er][move.ec] = moving_piece
     new_board[move.sr][move.sc] = "."
 
+    # pawn promotion
+    if moving_piece == "P" and move.er == 0:
+        new_board[move.er][move.ec] = "R"
+    elif moving_piece == "p" and move.er == 7:
+        new_board[move.er][move.ec] = "r"
+
     new_state = GameState(
         board=new_board,
         current_player=switch_player(state.current_player),

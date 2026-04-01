@@ -46,10 +46,12 @@ class InputHandler:
 
             self.selected_pos = pos
             all_legal_moves = manager.get_valid_moves()
-            self.highlight_moves = [
-                move for move in all_legal_moves
-                if move.sr == row and move.sc == col
-            ]
+            self.highlight_moves = []
+            for move in all_legal_moves:
+                if move.sr == row and move.sc == col:
+                    target_piece = state.board[move.er][move.ec]
+                    is_capture = target_piece != "."
+                    self.highlight_moves.append((move, is_capture))
             return None
 
         if self.selected_pos == pos:

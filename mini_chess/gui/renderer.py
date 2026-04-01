@@ -6,22 +6,23 @@ CELL_SIZE = 60
 BOARD_PIXELS = BOARD_SIZE * CELL_SIZE
 PANEL_HEIGHT = 140
 
-BG_COLOR = (18, 22, 28)
-PANEL_COLOR = (32, 36, 44)
+BG_COLOR = (20, 24, 32)
+PANEL_COLOR = (30, 35, 46)
+
 LIGHT_COLOR = (240, 217, 181)
 DARK_COLOR = (181, 136, 99)
 
-SELECT_COLOR = (76, 175, 80)
-MOVE_HINT_COLOR = (66, 165, 245)
-CHECK_COLOR = (220, 76, 70)
+SELECT_COLOR = (80, 180, 100)
+MOVE_HINT_COLOR = (70, 170, 255)
+CHECK_COLOR = (230, 80, 80)
 
-BUTTON_COLOR = (70, 75, 90)
-BUTTON_HOVER = (100, 110, 130)
-BUTTON_BORDER = (220, 220, 220)
+BUTTON_COLOR = (76, 84, 102)
+BUTTON_HOVER = (102, 112, 134)
+BUTTON_BORDER = (230, 230, 230)
 
 TEXT_MAIN = (245, 245, 245)
-TEXT_SUB = (180, 180, 180)
-TEXT_ACCENT = (255, 204, 102)
+TEXT_SUB = (190, 190, 190)
+TEXT_ACCENT = (255, 210, 120)
 
 
 class Renderer:
@@ -63,11 +64,17 @@ class Renderer:
         pygame.draw.rect(screen, SELECT_COLOR, rect, 4, border_radius=8)
 
     def draw_move_hints(self, screen, highlight_moves):
-        for move in highlight_moves:
+        for item in highlight_moves:
+            move, is_capture = item
             row, col = move.er, move.ec
             center_x = col * CELL_SIZE + CELL_SIZE // 2
             center_y = row * CELL_SIZE + CELL_SIZE // 2
-            pygame.draw.circle(screen, MOVE_HINT_COLOR, (center_x, center_y), 7)
+            
+            if is_capture:
+                rect = pygame.Rect(col * CELL_SIZE + 6, row * CELL_SIZE + 6, CELL_SIZE - 12, CELL_SIZE - 12)
+                pygame.draw.rect(screen, (220, 70, 70), rect, 4, border_radius=10)
+            else:
+                pygame.draw.circle(screen, MOVE_HINT_COLOR, (center_x, center_y), 7)
 
     def draw_check_highlight(self, screen, check_king_pos):
         if check_king_pos is None:

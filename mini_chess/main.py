@@ -68,8 +68,8 @@ def draw_menu_button(screen, rect, text, font, mouse_pos):
     border_color = (220, 220, 220)
 
     color = hover_color if rect.collidepoint(mouse_pos) else base_color
-    pygame.draw.rect(screen, color, rect, border_radius=12)
-    pygame.draw.rect(screen, border_color, rect, width=2, border_radius=12)
+    pygame.draw.rect(screen, color, rect, border_radius=16)
+    pygame.draw.rect(screen, (230, 230, 230), rect, width=2, border_radius=16)
 
     text_surface = font.render(text, True, (255, 255, 255))
     text_rect = text_surface.get_rect(center=rect.center)
@@ -78,7 +78,7 @@ def draw_menu_button(screen, rect, text, font, mouse_pos):
 
 
 def draw_menu(screen, title_font, button_font, mouse_pos):
-    screen.fill((18, 22, 28))
+    screen.fill((20, 24, 32))
 
     # title
     title = title_font.render("Mini Chess", True, (255, 204, 102))
@@ -142,6 +142,8 @@ def main():
     start_ticks = 0
     last_ai_move_time = 0
     frozen_elapsed_seconds = 0
+    ai_pending = False
+    ai_trigger_time = 0
 
     running = True
     while running:
@@ -248,18 +250,27 @@ def main():
                         else:
                             if manager.is_game_over():
                                 frozen_elapsed_seconds = (pygame.time.get_ticks() - start_ticks) / 1000
+                            elif manager.should_ai_move():
+                                ai_pending = True
+                                ai_trigger_time = pygame.time.get_ticks() + AI_MOVE_DELAY_MS
                         input_handler.clear_selection()
 
         now = pygame.time.get_ticks()
-        if manager.should_ai_move():
-            current_ai = manager.get_current_ai()
-            if current_ai is not None and now - last_ai_move_time >= AI_MOVE_DELAY_MS:
-                ai_move = current_ai.choose_move(manager.get_state())
-                manager.make_move(ai_move)
-                if manager.is_game_over():
-                    frozen_elapsed_seconds = (pygame.time.get_ticks() - start_ticks) / 1000
-                input_handler.clear_selection()
-                last_ai_move_time = now
+
+        if ai_pending and not manager.is_game_over():
+            if now >= ai_trigger_time:
+                current_ai = manager.get_current_ai()
+                if current_ai is not None:
+                    ai_move = current_ai.choose_move(manager.get_state())
+                    manager.make_move(ai_move)
+
+                    if manager.is_game_over():
+                        frozen_elapsed_seconds = (pygame.time.get_ticks() - start_ticks) / 1000
+                    
+                    input_handler.clear_selection()
+                    last_ai_move_time = now
+                
+                ai_pending = False
 
         state = manager.get_state()
         current_player = state.current_player

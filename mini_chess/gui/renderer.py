@@ -171,6 +171,7 @@ class Renderer:
         else:
             line2 = f"Time: {self.format_time(elapsed_seconds)}    Mode: {mode_name}"
 
+
         if game_over:
             if result == "draw":
                 line3 = "Result: Draw"

@@ -7,13 +7,15 @@ def clone_board(board):
 
 
 def clone_state(state):
-    return GameState(
+    new_state = GameState(
         board=clone_board(state.board),
         current_player=state.current_player,
         winner=state.winner,
         game_over=state.game_over,
         result=state.result,
     )
+    new_state.history = state.history.copy()
+    return new_state
 
 
 def print_board(board):
@@ -56,6 +58,8 @@ def apply_move(state, move):
         game_over=False,
         result=None,
     )
+
+    new_state.history = state.history.copy()
 
     return new_state
 

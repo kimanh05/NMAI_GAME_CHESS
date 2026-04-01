@@ -2,22 +2,25 @@ class GameState:
     def __init__(self, board=None, current_player="white", winner=None, game_over=False, result=None):
         self.board = board if board is not None else self.create_initial_board()
         self.current_player = current_player
-        self.winner = winner          # "white", "black", hoặc None
+        self.winner = winner
         self.game_over = game_over
-        self.result = result          # "checkmate", "stalemate", "draw", hoặc None
+        self.result = result
         self.history = []
 
+        # lưu trạng thái ban đầu
+        self.update_history()
+
     def board_to_string(self):
-        return "".join("".join(row) for row in self.board)
+        board_str = "".join("".join(row) for row in self.board)
+        return board_str + "_" + self.current_player
 
     def update_history(self):
         pos = self.board_to_string()
         self.history.append(pos)
 
-        # 3 lần lặp -> hòa
         if self.history.count(pos) >= 3:
             self.game_over = True
-            self.result = "draw"
+            self.result = "threefold_repetition"
             self.winner = None
 
     def create_initial_board(self):

@@ -175,6 +175,8 @@ class Renderer:
         if game_over:
             if result == "draw":
                 line3 = "Result: Draw"
+            elif result == "threefold_repetition":
+                line3 = "Result: Draw by repetition"
             elif result == "stalemate":
                 line3 = "Result: Stalemate"
             elif result == "checkmate":
@@ -202,6 +204,8 @@ class Renderer:
     def get_game_over_message(self, result, winner):
         if result == "draw":
             return "DRAW", "Only kings left"
+        if result == "threefold_repetition":
+            return "DRAW", "Threefold repetition"
         if result == "stalemate":
             return "STALEMATE", "No legal moves"
         if result == "checkmate":

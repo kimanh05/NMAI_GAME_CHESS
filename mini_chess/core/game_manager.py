@@ -58,6 +58,13 @@ class GameManager:
         return True
 
     def update_game_status(self):
+        # Ưu tiên: hòa do lặp 3 lần
+        if self.state.result == "threefold_repetition":
+            self.state.game_over = True
+            self.state.winner = None
+            return
+
+        # Draw: only kings left
         if only_kings_left(self.state.board):
             self.state.game_over = True
             self.state.winner = None
@@ -70,10 +77,12 @@ class GameManager:
             current_player = self.state.current_player
 
             if is_in_check(self.state, current_player):
+                # checkmate: current player loses
                 self.state.game_over = True
                 self.state.winner = "black" if current_player == "white" else "white"
                 self.state.result = "checkmate"
             else:
+                # stalemate
                 self.state.game_over = True
                 self.state.winner = None
                 self.state.result = "stalemate"

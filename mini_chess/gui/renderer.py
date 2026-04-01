@@ -166,7 +166,14 @@ class Renderer:
 
         line2 = f"Time: {self.format_time(elapsed_seconds)}"
         line3 = f"Mode: {mode_name}"
-        line4 = "CHECK!" if (not game_over and in_check) else "Click buttons below"
+        if not game_over and in_check:
+            line4 = "CHECK!"
+        elif current_player == "black" and "AlphaBeta" in mode_name:
+            line4 = "AI is thinking..."
+        elif current_player == "black" and "MCTS" in mode_name:
+            line4 = "AI is thinking..."
+        else:
+            line4 = "Click buttons below"
 
         text1 = self.small_font.render(line1, True, TEXT_MAIN)
         text2 = self.small_font.render(line2, True, TEXT_MAIN)

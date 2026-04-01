@@ -53,6 +53,7 @@ class GameManager:
             return False
 
         self.state = apply_move(self.state, move)
+        self.state.update_history()
         self.update_game_status()
         return True
 
@@ -119,3 +120,8 @@ class GameManager:
 
     def should_ai_move(self):
         return (not self.state.game_over) and (not self.is_human_turn())
+    
+    def get_ai_names(self):
+        white_ai = self.white_ai.__class__.__name__ if self.white_ai else "Human"
+        black_ai = self.black_ai.__class__.__name__ if self.black_ai else "Human"
+        return white_ai, black_ai

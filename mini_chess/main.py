@@ -63,37 +63,62 @@ def create_manager_for_mode(mode):
 
 
 def draw_menu_button(screen, rect, text, font, mouse_pos):
-    base_color = (60, 60, 70)
-    hover_color = (95, 95, 110)
-    border_color = (220, 220, 220)
+    shadow_rect = rect.move(0, 6)
+    pygame.draw.rect(screen, (10, 12, 18), shadow_rect, border_radius=18)
 
-    color = hover_color if rect.collidepoint(mouse_pos) else base_color
-    pygame.draw.rect(screen, color, rect, border_radius=16)
-    pygame.draw.rect(screen, (230, 230, 230), rect, width=2, border_radius=16)
+    is_hover = rect.collidepoint(mouse_pos)
+    color = (92, 100, 120) if is_hover else (70, 78, 96)
+    border = (255, 214, 102) if is_hover else (230, 230, 235)
 
-    text_surface = font.render(text, True, (255, 255, 255))
+    pygame.draw.rect(screen, color, rect, border_radius=18)
+    pygame.draw.rect(screen, border, rect, width=3, border_radius=18)
+
+    text_surface = font.render(text, True, (248, 248, 250))
     text_rect = text_surface.get_rect(center=rect.center)
     screen.blit(text_surface, text_rect)
 
 
 
 def draw_menu(screen, title_font, button_font, mouse_pos):
-    screen.fill((20, 24, 32))
+    # background
+    screen.fill((14, 18, 28))
+
+    # gradient giả bằng nhiều line
+    for y in range(WINDOW_HEIGHT):
+        ratio = y / WINDOW_HEIGHT
+        r = int(14 + ratio * 8)
+        g = int(18 + ratio * 10)
+        b = int(28 + ratio * 18)
+        pygame.draw.line(screen, (r, g, b), (0, y), (WINDOW_WIDTH, y))
+
+    # card giữa màn hình
+    card_width = 380
+    card_height = 520
+    card_x = (WINDOW_WIDTH - card_width) // 2
+    card_y = 70
+
+    shadow_rect = pygame.Rect(card_x + 6, card_y + 8, card_width, card_height)
+    pygame.draw.rect(screen, (8, 10, 16), shadow_rect, border_radius=24)
+
+    card_rect = pygame.Rect(card_x, card_y, card_width, card_height)
+    pygame.draw.rect(screen, (24, 30, 44), card_rect, border_radius=24)
+    pygame.draw.rect(screen, (70, 80, 100), card_rect, width=2, border_radius=24)
 
     # title
-    title = title_font.render("Mini Chess", True, (255, 204, 102))
-    subtitle = button_font.render("Choose a game mode", True, (180, 180, 180))
+    title = title_font.render("Mini Chess", True, (255, 210, 100))
+    title_rect = title.get_rect(center=(WINDOW_WIDTH // 2, card_y + 70))
+    screen.blit(title, title_rect)
 
-    screen.blit(title, title.get_rect(center=(WINDOW_WIDTH // 2, 90)))
-    screen.blit(subtitle, subtitle.get_rect(center=(WINDOW_WIDTH // 2, 140)))
+    subtitle = button_font.render("Choose a game mode", True, (190, 195, 205))
+    subtitle_rect = subtitle.get_rect(center=(WINDOW_WIDTH // 2, card_y + 120))
+    screen.blit(subtitle, subtitle_rect)
 
-    # button layout
+    # buttons
     button_width = 280
-    button_height = 55
+    button_height = 58
     gap = 18
-
     center_x = WINDOW_WIDTH // 2
-    start_y = 200
+    start_y = card_y + 170
 
     buttons = {
         MODE_HUMAN_VS_HUMAN: pygame.Rect(center_x - button_width // 2, start_y, button_width, button_height),
@@ -102,6 +127,14 @@ def draw_menu(screen, title_font, button_font, mouse_pos):
         MODE_AI_VS_AI: pygame.Rect(center_x - button_width // 2, start_y + (button_height + gap) * 3, button_width, button_height),
         "quit": pygame.Rect(center_x - button_width // 2, start_y + (button_height + gap) * 4, button_width, button_height),
     }
+
+    draw_menu_button(screen, buttons[MODE_HUMAN_VS_HUMAN], "Human vs Human", button_font, mouse_pos)
+    draw_menu_button(screen, buttons[MODE_HUMAN_VS_ALPHABETA], "Human vs AlphaBeta", button_font, mouse_pos)
+    draw_menu_button(screen, buttons[MODE_HUMAN_VS_MCTS], "Human vs MCTS", button_font, mouse_pos)
+    draw_menu_button(screen, buttons[MODE_AI_VS_AI], "AI vs AI", button_font, mouse_pos)
+    draw_menu_button(screen, buttons["quit"], "Quit", button_font, mouse_pos)
+
+    return buttons
 
     def draw_btn(rect, text):
         base = (70, 75, 90)
@@ -129,8 +162,8 @@ def main():
     screen = pygame.display.set_mode((WINDOW_WIDTH, WINDOW_HEIGHT))
     pygame.display.set_caption("Mini Chess")
 
-    title_font = pygame.font.SysFont("arial", 42, bold=True)
-    button_font = pygame.font.SysFont("arial", 28, bold=True)
+    title_font = pygame.font.SysFont("georgia", 46, bold=True)
+    button_font = pygame.font.SysFont("arial", 24, bold=True)
 
     clock = pygame.time.Clock()
     renderer = Renderer()
@@ -144,6 +177,8 @@ def main():
     frozen_elapsed_seconds = 0
     ai_pending = False
     ai_trigger_time = 0
+    ai_thinking = False
+
 
     running = True
     while running:
@@ -163,6 +198,8 @@ def main():
                         in_menu = False
                         start_ticks = pygame.time.get_ticks()
                         frozen_elapsed_seconds = 0
+                        ai_pending = False
+                        ai_thinking = False
                         input_handler.clear_selection()
 
                     elif buttons[MODE_HUMAN_VS_ALPHABETA].collidepoint(event.pos):
@@ -171,6 +208,8 @@ def main():
                         in_menu = False
                         start_ticks = pygame.time.get_ticks()
                         frozen_elapsed_seconds = 0
+                        ai_pending = False
+                        ai_thinking = False
                         input_handler.clear_selection()
 
                     elif buttons[MODE_HUMAN_VS_MCTS].collidepoint(event.pos):
@@ -179,6 +218,8 @@ def main():
                         in_menu = False
                         start_ticks = pygame.time.get_ticks()
                         frozen_elapsed_seconds = 0
+                        ai_pending = False
+                        ai_thinking = False
                         input_handler.clear_selection()
 
                     elif buttons[MODE_AI_VS_AI].collidepoint(event.pos):
@@ -187,6 +228,8 @@ def main():
                         in_menu = False
                         start_ticks = pygame.time.get_ticks()
                         frozen_elapsed_seconds = 0
+                        ai_pending = False
+                        ai_thinking = False
                         input_handler.clear_selection()
 
                     elif buttons["quit"].collidepoint(event.pos):
@@ -222,17 +265,22 @@ def main():
                     highlight_moves=input_handler.highlight_moves,
                     in_check=in_check_for_buttons,
                     check_king_pos=check_king_pos_for_buttons,
+                    ai_thinking=ai_thinking,
                 )
 
                 if bottom_buttons["restart"].collidepoint(event.pos):
                     manager = create_manager_for_mode(selected_mode)
                     start_ticks = pygame.time.get_ticks()
                     frozen_elapsed_seconds = 0
+                    ai_pending = False
+                    ai_thinking = False
                     input_handler.clear_selection()
                     continue
 
                 if bottom_buttons["menu"].collidepoint(event.pos):
                     in_menu = True
+                    ai_pending = False
+                    ai_thinking = False
                     input_handler.clear_selection()
                     continue
 
@@ -252,10 +300,17 @@ def main():
                                 frozen_elapsed_seconds = (pygame.time.get_ticks() - start_ticks) / 1000
                             elif manager.should_ai_move():
                                 ai_pending = True
+                                ai_thinking = True
                                 ai_trigger_time = pygame.time.get_ticks() + AI_MOVE_DELAY_MS
                         input_handler.clear_selection()
 
         now = pygame.time.get_ticks()
+
+        # nếu là AI vs AI thì tự kích hoạt lượt AI đầu tiên
+        if not ai_pending and not manager.is_game_over() and manager.should_ai_move():
+            ai_pending = True
+            ai_thinking = True
+            ai_trigger_time = now + AI_MOVE_DELAY_MS
 
         if ai_pending and not manager.is_game_over():
             if now >= ai_trigger_time:
@@ -266,11 +321,12 @@ def main():
 
                     if manager.is_game_over():
                         frozen_elapsed_seconds = (pygame.time.get_ticks() - start_ticks) / 1000
-                    
+
                     input_handler.clear_selection()
                     last_ai_move_time = now
-                
+
                 ai_pending = False
+                ai_thinking = False
 
         state = manager.get_state()
         current_player = state.current_player
@@ -287,6 +343,7 @@ def main():
             highlight_moves=input_handler.highlight_moves,
             in_check=in_check,
             check_king_pos=check_king_pos,
+            ai_thinking=ai_thinking,
         )
 
         pygame.display.flip()

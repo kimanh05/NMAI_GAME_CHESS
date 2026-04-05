@@ -91,7 +91,7 @@ class MCTSAI:
     # =========================
     # SMART ROLLOUT
     # =========================
-    def rollout(self, state, max_depth=20):
+    def rollout(self, state, max_depth=10):
         for _ in range(max_depth):
             moves = get_legal_moves(state)
             if not moves:
